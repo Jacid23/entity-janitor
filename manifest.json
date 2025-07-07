@@ -1,13 +1,13 @@
 {
   "domain": "entity_janitor",
   "name": "Entity Janitor",
-  "codeowners": ["@Jacid23"],
+  "codeowners": ["@home-assistant-user"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/Jacid23/entity-janitor",
+  "documentation": "https://github.com/home-assistant-user/entity-janitor",
   "integration_type": "service",
   "iot_class": "local_polling",
   "loggers": ["custom_components.entity_janitor"],
   "requirements": [],
-  "version": "1.0.2"
+  "version": "1.0.0"
 }

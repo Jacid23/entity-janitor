@@ -1,14 +1,13 @@
 """Config flow for Entity Janitor integration."""
-from __future__ import annotations
-
 import logging
 from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigEntry, OptionsFlow
+from homeassistant import config_entries
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.helpers import config_validation as cv
 
 from .const import (
     DOMAIN,
@@ -16,10 +15,13 @@ from .const import (
     CONF_SCAN_INTERVAL,
     CONF_AUTO_CLEAN,
     CONF_BACKUP_BEFORE_CLEAN,
+    CONF_EXCLUDED_DOMAINS,
+    CONF_EXCLUDED_ENTITIES,
     CONF_MINIMUM_AGE_DAYS,
     CONF_DRY_RUN,
     DEFAULT_SCAN_INTERVAL,
     DEFAULT_MINIMUM_AGE_DAYS,
+    DEFAULT_EXCLUDED_DOMAINS,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -40,10 +42,11 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-class EntityJanitorConfigFlow(ConfigFlow, domain=DOMAIN):
+class EntityJanitorConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for Entity Janitor."""
 
     VERSION = 1
+    DOMAIN = DOMAIN
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -79,15 +82,17 @@ class EntityJanitorConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry: ConfigEntry) -> EntityJanitorOptionsFlow:
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
         """Create the options flow."""
-        return EntityJanitorOptionsFlow(config_entry)
+        return EntityJanitorOptionsFlowHandler(config_entry)
 
 
-class EntityJanitorOptionsFlow(OptionsFlow):
+class EntityJanitorOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle Entity Janitor options flow."""
 
-    def __init__(self, config_entry: ConfigEntry) -> None:
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         self.config_entry = config_entry
 
@@ -98,34 +103,52 @@ class EntityJanitorOptionsFlow(OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
+        options_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_AUTO_SCAN,
+                    default=self.config_entry.options.get(CONF_AUTO_SCAN, False),
+                ): bool,
+                vol.Optional(
+                    CONF_SCAN_INTERVAL,
+                    default=self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
+                ): vol.All(vol.Coerce(int), vol.Range(min=15, max=1440)),
+                vol.Optional(
+                    CONF_AUTO_CLEAN,
+                    default=self.config_entry.options.get(CONF_AUTO_CLEAN, False),
+                ): bool,
+                vol.Optional(
+                    CONF_BACKUP_BEFORE_CLEAN,
+                    default=self.config_entry.options.get(CONF_BACKUP_BEFORE_CLEAN, True),
+                ): bool,
+                vol.Optional(
+                    CONF_MINIMUM_AGE_DAYS,
+                    default=self.config_entry.options.get(CONF_MINIMUM_AGE_DAYS, DEFAULT_MINIMUM_AGE_DAYS),
+                ): vol.All(vol.Coerce(int), vol.Range(min=1, max=365)),
+                vol.Optional(
+                    CONF_DRY_RUN,
+                    default=self.config_entry.options.get(CONF_DRY_RUN, True),
+                ): bool,
+                vol.Optional(
+                    CONF_EXCLUDED_DOMAINS,
+                    default=self.config_entry.options.get(CONF_EXCLUDED_DOMAINS, DEFAULT_EXCLUDED_DOMAINS),
+                ): cv.multi_select([
+                    "automation", "script", "scene", "zone", "person", "device_tracker",
+                    "persistent_notification", "input_boolean", "input_text", "input_number",
+                    "input_select", "input_datetime", "timer", "counter", "weather",
+                    "sun", "group", "media_player", "light", "switch", "sensor",
+                    "binary_sensor", "camera", "climate", "cover", "fan", "lock",
+                    "alarm_control_panel", "vacuum", "water_heater", "humidifier",
+                    "remote", "select", "siren", "button", "number", "text"
+                ]),
+                vol.Optional(
+                    CONF_EXCLUDED_ENTITIES,
+                    default=self.config_entry.options.get(CONF_EXCLUDED_ENTITIES, []),
+                ): cv.multi_select([]),  # This would be dynamically populated
+            }
+        )
+
         return self.async_show_form(
             step_id="init",
-            data_schema=vol.Schema(
-                {
-                    vol.Optional(
-                        CONF_AUTO_SCAN,
-                        default=self.config_entry.options.get(CONF_AUTO_SCAN, False),
-                    ): bool,
-                    vol.Optional(
-                        CONF_SCAN_INTERVAL,
-                        default=self.config_entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL),
-                    ): vol.All(vol.Coerce(int), vol.Range(min=15, max=1440)),
-                    vol.Optional(
-                        CONF_AUTO_CLEAN,
-                        default=self.config_entry.options.get(CONF_AUTO_CLEAN, False),
-                    ): bool,
-                    vol.Optional(
-                        CONF_BACKUP_BEFORE_CLEAN,
-                        default=self.config_entry.options.get(CONF_BACKUP_BEFORE_CLEAN, True),
-                    ): bool,
-                    vol.Optional(
-                        CONF_MINIMUM_AGE_DAYS,
-                        default=self.config_entry.options.get(CONF_MINIMUM_AGE_DAYS, DEFAULT_MINIMUM_AGE_DAYS),
-                    ): vol.All(vol.Coerce(int), vol.Range(min=1, max=365)),
-                    vol.Optional(
-                        CONF_DRY_RUN,
-                        default=self.config_entry.options.get(CONF_DRY_RUN, True),
-                    ): bool,
-                }
-            ),
+            data_schema=options_schema,
         )

@@ -1,0 +1,105 @@
+# Example Lovelace cards for Entity Janitor
+
+# Basic card with sensors
+type: entities
+title: Entity Janitor
+show_header_toggle: false
+entities:
+  - entity: sensor.entity_janitor_orphan_count
+    name: Orphaned Entities
+    icon: mdi:delete-sweep
+  - entity: sensor.entity_janitor_total_entities
+    name: Total Entities
+    icon: mdi:counter
+  - entity: sensor.entity_janitor_last_scan
+    name: Last Scan
+    icon: mdi:clock-outline
+
+---
+
+# Control card with buttons and switches
+type: entities
+title: Entity Janitor Controls
+show_header_toggle: false
+entities:
+  - entity: switch.entity_janitor_auto_scan
+    name: Auto Scan
+  - entity: switch.entity_janitor_auto_clean
+    name: Auto Clean
+  - type: divider
+  - entity: button.entity_janitor_scan_orphans
+    name: Scan Now
+  - entity: button.entity_janitor_clean_orphans_dry_run
+    name: Preview Cleanup
+  - entity: button.entity_janitor_backup_orphans
+    name: Backup Orphans
+
+---
+
+# Advanced card with more details
+type: vertical-stack
+cards:
+  - type: horizontal-stack
+    cards:
+      - type: gauge
+        entity: sensor.entity_janitor_orphan_count
+        name: Orphaned Entities
+        min: 0
+        max: 100
+        severity:
+          green: 0
+          yellow: 10
+          red: 25
+      - type: statistic
+        entity: sensor.entity_janitor_total_entities
+        name: Total Entities
+        stat_type: state
+  
+  - type: entities
+    title: Controls
+    entities:
+      - entity: switch.entity_janitor_auto_scan
+        name: Enable Auto Scan
+      - entity: switch.entity_janitor_auto_clean
+        name: Enable Auto Clean
+      - type: divider
+      - entity: button.entity_janitor_scan_orphans
+        name: Scan for Orphans
+        tap_action:
+          action: call-service
+          service: entity_janitor.scan_orphans
+      - entity: button.entity_janitor_clean_orphans_dry_run
+        name: Preview Cleanup (Dry Run)
+        tap_action:
+          action: call-service
+          service: entity_janitor.clean_orphans
+          service_data:
+            dry_run: true
+      - entity: button.entity_janitor_backup_orphans
+        name: Create Backup
+        tap_action:
+          action: call-service
+          service: entity_janitor.backup_entities
+
+---
+
+# Compact card for dashboard
+type: glance
+title: Entity Janitor
+entities:
+  - entity: sensor.entity_janitor_orphan_count
+    name: Orphans
+    tap_action:
+      action: more-info
+  - entity: sensor.entity_janitor_total_entities
+    name: Total
+  - entity: button.entity_janitor_scan_orphans
+    name: Scan
+    tap_action:
+      action: call-service
+      service: entity_janitor.scan_orphans
+  - entity: button.entity_janitor_backup_orphans
+    name: Backup
+    tap_action:
+      action: call-service
+      service: entity_janitor.backup_entities

@@ -5,64 +5,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2025-07-07
+
+### Fixed
+- **Version Display**: Fixed HACS showing commit hash instead of version number
+- **Config Flow**: Fixed registration issues preventing integration from appearing in UI
+- **Repository Structure**: Moved files to proper GitHub structure for easier downloads
+
+### Documentation
+- Added comprehensive GitHub setup and release guides
+- Updated installation instructions for manual and HACS installation
+- Created clean build folder structure
+
 ## [1.0.2] - 2025-07-07
 
 ### Fixed
-- **Critical**: Fixed "Config flow could not be loaded: Invalid handler specified" error
-- Corrected config flow class registration with proper domain parameter
-- Updated config flow imports and class structure for Home Assistant compatibility
+- **Config Flow**: Fixed "Invalid handler specified" error
+- **Class Definition**: Corrected ConfigFlow class structure
+- **UI Integration**: Integration now appears properly in Home Assistant settings
+
+### Documentation
+- Added detailed troubleshooting guides
+- Updated configuration examples
 
 ## [1.0.1] - 2025-07-07
 
 ### Added
-- Custom logo icon (icon.svg) for better visual identification
-- Updated installation instructions prioritizing HACS
-- Logo information documentation
-
-### Changed
-- Updated manifest with correct repository URLs (@Jacid23)
-- Enhanced README with clearer HACS installation steps
-- Version bump to 1.0.1 for logo and documentation updates
+- **Custom Logo**: Professional SVG logo with cleaning theme
+- **HACS Compliance**: Full HACS integration support
+- **Professional Documentation**: Complete README with badges and examples
 
 ### Fixed
-- HACS repository structure compliance achieved
-- Corrected documentation URLs in manifest.json
+- **HACS Structure**: Proper folder organization for HACS compatibility
+- **Documentation Links**: Updated all URLs to point to correct repository
 
 ## [1.0.0] - 2025-07-07
 
 ### Added
-- Initial release of Entity Janitor integration
-- Automatic orphaned entity detection and cleanup
-- Safe backup system before cleanup operations
-- Configurable filtering by domain and entity ID
-- Age-based filtering for entity cleanup
-- Dry-run mode for preview functionality
-- Multiple platform support (sensors, buttons, switches)
-- Comprehensive service API
-- Event system for automation triggers
-- Full configuration UI with options flow
-- Extensive documentation and examples
+- **Initial Release**: Complete Entity Janitor integration
+- **Orphaned Entity Detection**: Automatically find entities without active devices
+- **Safe Cleanup**: Backup entities before removal with dry-run mode
+- **UI Integration**: Full Home Assistant configuration UI
+- **Multiple Interfaces**: Sensors, buttons, switches, and services
+- **Comprehensive Logging**: Detailed operation logs and debugging
+- **Age-based Filtering**: Only process entities older than specified days
+- **Domain/Entity Exclusions**: Protect critical entities from cleanup
+- **Event System**: Fire events for automation integration
+- **HACS Support**: Full HACS custom repository compatibility
 
 ### Features
-- **Sensors**: Track orphan count, total entities, and last scan time
-- **Buttons**: Manual scan, dry-run cleanup, and backup creation
-- **Switches**: Toggle auto-scan and auto-clean functionality
-- **Services**: Programmatic control of all operations
-- **Safety**: Backup system with JSON export/import
-- **Automation**: Event-driven automation support
-- **Logging**: Comprehensive logging for all operations
-
-### Safety Features
-- Dry-run mode prevents accidental deletions
-- Automatic backups before cleanup operations
-- Age-based filtering protects new entities
-- Domain exclusions protect critical entity types
-- Entity-specific exclusions for custom protection
-- Comprehensive logging for audit trails
-
-### Configuration
-- User-friendly setup wizard
-- Advanced options for power users
-- Configurable scan intervals
-- Flexible filtering options
-- Safe defaults for new installations
+- Auto-scan for orphaned entities
+- Configurable scan intervals (15-1440 minutes)
+- Automatic cleanup with safety checks
+- JSON backup files with timestamps
+- Dry-run mode for safe testing
+- Comprehensive entity filtering options
+- Home Assistant service integration
+- Professional documentation and guides
