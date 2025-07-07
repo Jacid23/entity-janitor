@@ -1,0 +1,65 @@
+# Example automations for Entity Janitor
+
+# Notification when orphaned entities are found
+- alias: "Entity Janitor - Orphans Found Notification"
+  trigger:
+    - platform: event
+      event_type: entity_janitor_orphans_found
+  condition:
+    - condition: template
+      value_template: "{{ trigger.event.data.orphan_count > 0 }}"
+  action:
+    - service: notify.notify
+      data:
+        title: "Orphaned Entities Found"
+        message: >
+          Entity Janitor found {{ trigger.event.data.orphan_count }} orphaned entities 
+          out of {{ trigger.event.data.total_entities }} total entities.
+
+# Weekly orphan scan
+- alias: "Entity Janitor - Weekly Scan"
+  trigger:
+    - platform: time
+      at: "02:00:00"
+    - platform: time
+      at: "09:00:00"  # Also scan on startup
+  condition:
+    - condition: time
+      weekday:
+        - sun
+  action:
+    - service: entity_janitor.scan_orphans
+
+# Auto-backup when many orphans are found
+- alias: "Entity Janitor - Auto Backup Large Orphan Count"
+  trigger:
+    - platform: state
+      entity_id: sensor.entity_janitor_orphan_count
+  condition:
+    - condition: template
+      value_template: "{{ states('sensor.entity_janitor_orphan_count') | int > 50 }}"
+  action:
+    - service: entity_janitor.backup_entities
+    - service: notify.notify
+      data:
+        title: "Large Orphan Count Detected"
+        message: >
+          Entity Janitor found {{ states('sensor.entity_janitor_orphan_count') }} orphaned entities.
+          A backup has been created automatically.
+
+# Cleanup notification
+- alias: "Entity Janitor - Cleanup Complete"
+  trigger:
+    - platform: event
+      event_type: entity_janitor_cleanup_complete
+  action:
+    - service: notify.notify
+      data:
+        title: "Entity Cleanup Complete"
+        message: >
+          Entity Janitor cleanup completed:
+          - Cleaned: {{ trigger.event.data.cleaned_count }}
+          - Skipped: {{ trigger.event.data.skipped_count }}
+          {% if trigger.event.data.backup_file %}
+          - Backup: {{ trigger.event.data.backup_file }}
+          {% endif %}
