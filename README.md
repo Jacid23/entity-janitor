@@ -1,8 +1,9 @@
 # Entity Janitor for Home Assistant
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
-[![GitHub release (latest by date)](https://github.com/Jacid23/entity-janitor/releases/tag/v1.0.3)](https://github.com/homeassistant-user/entity-janitor/releases)
-[![GitHub](https://img.shields.io/github/license/homeassistant-user/entity-janitor)](LICENSE)
+[![GitHub](https://img.shields.io/badge/GitHub-Jacid23%2Fentity--janitor-blue.svg)](https://github.com/Jacid23/entity-janitor/releases/tag/v1.0.3)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/Jacid23/entity-janitor/blob/main/LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.3-green.svg)](https://github.com/Jacid23/entity-janitor)
 
 A comprehensive Home Assistant custom integration for automatically detecting and managing orphaned entities.
 
