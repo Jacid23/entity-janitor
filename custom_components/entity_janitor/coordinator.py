@@ -174,7 +174,9 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
             raise
         finally:
             self._scan_in_progress = False
-            await self.async_update_listeners()
+            # Request data refresh to update sensors
+            await self.async_request_refresh()
+            self.async_update_listeners()
 
     async def async_clean_obsolete(
         self, 

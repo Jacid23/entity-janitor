@@ -25,7 +25,7 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     buttons = [
-        EntityJanitorButton(coordinator, "scan_obsolete"),
+        EntityJanitorButton(coordinator, "scan_for_obsolete"),
         EntityJanitorButton(coordinator, "test_cleanup"),
         EntityJanitorButton(coordinator, "backup_obsolete"),
         EntityJanitorTemplateButton(coordinator, "quick_scan"),
@@ -53,22 +53,21 @@ class EntityJanitorButton(CoordinatorEntity, ButtonEntity):
 
     async def async_press(self) -> None:
         """Handle the button press."""
-        if self._button_type == "scan_obsolete":
+        if self._button_type == "scan_for_obsolete":
             await self.coordinator.async_scan_for_obsolete()
         elif self._button_type == "test_cleanup":
             await self.coordinator.async_clean_obsolete(dry_run=True)
         elif self._button_type == "backup_obsolete":
-            if self.coordinator.obsolete_entities:
-                await self.coordinator.async_backup_entities(
-                    self.coordinator.obsolete_entities
-                )
+            obsolete_entities = getattr(self.coordinator, 'obsolete_entities', [])
+            if obsolete_entities:
+                await self.coordinator.async_backup_entities(obsolete_entities)
             else:
                 _LOGGER.warning("No obsolete entities to backup")
 
     @property
     def icon(self) -> str:
         """Return the icon for the button."""
-        if self._button_type == "scan_obsolete":
+        if self._button_type == "scan_for_obsolete":
             return "mdi:magnify"
         elif self._button_type == "test_cleanup":
             return "mdi:play-outline"
@@ -147,7 +146,7 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
         # Fire event similar to ESPHome pattern
         self.hass.bus.async_fire(
             "entity_janitor_quick_scan_complete",
-            {"entity_id": self.entity_id, "obsolete_count": len(self.coordinator.obsolete_entities)},
+            {"entity_id": self.entity_id, "obsolete_count": len(getattr(self.coordinator, 'obsolete_entities', []))},
         )
 
     async def _full_cleanup(self) -> None:
@@ -158,8 +157,9 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
         dry_run = self.coordinator.config_entry.options.get("dry_run_mode", False)
         backup_enabled = self.coordinator.config_entry.options.get("backup_before_clean", True)
 
-        if backup_enabled and self.coordinator.obsolete_entities and not dry_run:
-            await self.coordinator.async_backup_entities(self.coordinator.obsolete_entities)
+        obsolete_entities = getattr(self.coordinator, 'obsolete_entities', [])
+        if backup_enabled and obsolete_entities and not dry_run:
+            await self.coordinator.async_backup_entities(obsolete_entities)
 
         await self.coordinator.async_clean_obsolete(dry_run=dry_run)
 
@@ -173,7 +173,8 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
         """Export a report of obsolete entities."""
         _LOGGER.info("Exporting obsolete entities report")
 
-        if not self.coordinator.obsolete_entities:
+        obsolete_entities = getattr(self.coordinator, 'obsolete_entities', [])
+        if not obsolete_entities:
             _LOGGER.warning("No obsolete entities to export")
             return
 
@@ -182,7 +183,7 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
 
         report = {
             "timestamp": datetime.now().isoformat(),
-            "obsolete_count": len(self.coordinator.obsolete_entities),
+            "obsolete_count": len(obsolete_entities),
             "entities": [
                 {
                     "entity_id": entity_data["entity_id"],
@@ -192,7 +193,7 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
                     "reason": entity_data.get("reason", "Unknown"),
                     "platform": entity_data.get("platform", "Unknown"),
                 }
-                for entity_data in self.coordinator.obsolete_entities
+                for entity_data in obsolete_entities
             ],
         }
 
@@ -212,10 +213,12 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
         _LOGGER.info("Resetting Entity Janitor statistics")
 
         # Clear obsolete entities cache
-        self.coordinator.obsolete_entities.clear()
+        if hasattr(self.coordinator, '_obsolete_entities'):
+            self.coordinator._obsolete_entities.clear()
 
         # Reset last scan time
-        self.coordinator.last_scan = None
+        if hasattr(self.coordinator, '_last_scan'):
+            self.coordinator._last_scan = None
 
         # Request refresh
         await self.coordinator.async_request_refresh()

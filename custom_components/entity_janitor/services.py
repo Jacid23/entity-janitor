@@ -9,7 +9,7 @@ from homeassistant.helpers import config_validation as cv
 
 from .const import (
     DOMAIN,
-    SERVICE_SCAN_OBSOLETE,
+    SERVICE_SCAN_FOR_OBSOLETE,
     SERVICE_CLEAN_OBSOLETE,
     SERVICE_BACKUP_ENTITIES,
     SERVICE_RESTORE_ENTITIES,
@@ -18,7 +18,7 @@ from .coordinator import EntityJanitorCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-SERVICE_SCAN_OBSOLETE_SCHEMA = vol.Schema({})
+SERVICE_SCAN_FOR_OBSOLETE_SCHEMA = vol.Schema({})
 
 SERVICE_CLEAN_OBSOLETE_SCHEMA = vol.Schema({
     vol.Optional("entity_ids", default=[]): vol.All(cv.ensure_list, [cv.string]),
@@ -38,7 +38,7 @@ SERVICE_RESTORE_ENTITIES_SCHEMA = vol.Schema({
 async def async_setup_services(hass: HomeAssistant, coordinator: EntityJanitorCoordinator) -> None:
     """Set up services for Entity Janitor."""
     
-    async def handle_scan_obsolete(call: ServiceCall) -> None:
+    async def handle_scan_for_obsolete(call: ServiceCall) -> None:
         """Handle scan obsolete service call."""
         try:
             obsolete_entities = await coordinator.async_scan_for_obsolete()
@@ -102,9 +102,9 @@ async def async_setup_services(hass: HomeAssistant, coordinator: EntityJanitorCo
     # Register services
     hass.services.async_register(
         DOMAIN,
-        SERVICE_SCAN_OBSOLETE,
-        handle_scan_obsolete,
-        schema=SERVICE_SCAN_OBSOLETE_SCHEMA,
+        SERVICE_SCAN_FOR_OBSOLETE,
+        handle_scan_for_obsolete,
+        schema=SERVICE_SCAN_FOR_OBSOLETE_SCHEMA,
     )
 
     hass.services.async_register(

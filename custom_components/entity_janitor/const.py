@@ -31,7 +31,7 @@ DEFAULT_EXCLUDED_DOMAINS = [
 ]
 
 # Service names
-SERVICE_SCAN_OBSOLETE = "scan_obsolete"
+SERVICE_SCAN_FOR_OBSOLETE = "scan_for_obsolete"
 SERVICE_CLEAN_OBSOLETE = "clean_obsolete"
 SERVICE_BACKUP_ENTITIES = "backup_entities"
 SERVICE_RESTORE_ENTITIES = "restore_entities"

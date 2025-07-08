@@ -82,17 +82,21 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return extra state attributes."""
         if self._sensor_type == "obsolete_count":
+            # Get obsolete entities from coordinator property
+            obsolete_entities = getattr(self.coordinator, 'obsolete_entities', [])
             return {
                 "obsolete_entities": [
-                    entity["entity_id"] for entity in self.coordinator.obsolete_entities
+                    entity["entity_id"] for entity in obsolete_entities
                 ][:50],  # Limit to first 50 to avoid state size limits
                 "scan_in_progress": self.coordinator.data.get("scan_in_progress", False),
             }
         elif self._sensor_type == "total_entities":
+            # Get obsolete entities from coordinator property
+            obsolete_entities = getattr(self.coordinator, 'obsolete_entities', [])
             return {
                 "obsolete_percentage": (
                     round(
-                        (len(self.coordinator.obsolete_entities) / 
+                        (len(obsolete_entities) / 
                          max(self.coordinator.data.get("total_entities", 1), 1)) * 100, 2
                     )
                 )
