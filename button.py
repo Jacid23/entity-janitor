@@ -56,7 +56,7 @@ class EntityJanitorButton(CoordinatorEntity, ButtonEntity):
         if self._button_type == "scan_obsolete":
             await self.coordinator.async_scan_for_obsolete()
         elif self._button_type == "test_cleanup":
-            await self.coordinator.async_clean_orphans(dry_run=True)
+            await self.coordinator.async_clean_obsolete(dry_run=True)
         elif self._button_type == "backup_obsolete":
             if self.coordinator.orphaned_entities:
                 await self.coordinator.async_backup_entities(
@@ -163,7 +163,7 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
         if backup_enabled and self.coordinator.orphaned_entities and not dry_run:
             await self.coordinator.async_backup_entities(self.coordinator.orphaned_entities)
 
-        await self.coordinator.async_clean_orphans(dry_run=dry_run)
+        await self.coordinator.async_clean_obsolete(dry_run=dry_run)
 
         # Fire event
         self.hass.bus.async_fire(

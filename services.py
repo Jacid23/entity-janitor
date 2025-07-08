@@ -54,7 +54,7 @@ async def async_setup_services(hass: HomeAssistant, coordinator: EntityJanitorCo
         backup_before_clean = call.data.get("backup_before_clean", True)
         
         try:
-            result = await coordinator.async_clean_orphans(
+            result = await coordinator.async_clean_obsolete(
                 entity_ids=entity_ids if entity_ids else None,
                 dry_run=dry_run,
                 backup_before_clean=backup_before_clean
