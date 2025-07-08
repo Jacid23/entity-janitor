@@ -42,11 +42,12 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
-class EntityJanitorConfigFlow(config_entries.ConfigFlow):
+@config_entries.HANDLERS.register(DOMAIN)
+class ConfigFlow(config_entries.ConfigFlow):
     """Handle a config flow for Entity Janitor."""
 
     VERSION = 1
-    DOMAIN = DOMAIN
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_POLLING
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -82,14 +83,12 @@ class EntityJanitorConfigFlow(config_entries.ConfigFlow):
 
     @staticmethod
     @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
-        """Create the options flow."""
-        return EntityJanitorOptionsFlowHandler(config_entry)
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return OptionsFlowHandler(config_entry)
 
 
-class EntityJanitorOptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle Entity Janitor options flow."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
