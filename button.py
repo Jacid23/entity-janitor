@@ -84,7 +84,7 @@ class EntityJanitorButton(CoordinatorEntity, ButtonEntity):
             name="Entity Janitor",
             manufacturer="Custom Integration",
             model="Entity Management System",
-            sw_version="1.0.0",
+            sw_version="1.0.4",
             configuration_url="/local/entity_janitor/icon.svg",
             suggested_area="System",
         )
@@ -113,7 +113,7 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
             name="Entity Janitor",
             manufacturer="Custom Integration",
             model="Entity Management System",
-            sw_version="1.0.0",
+            sw_version="1.0.4",
             configuration_url="/local/entity_janitor/icon.svg",
             suggested_area="System",
         )
@@ -187,12 +187,14 @@ class EntityJanitorTemplateButton(CoordinatorEntity, ButtonEntity):
             "obsolete_count": len(self.coordinator.orphaned_entities),
             "entities": [
                 {
-                    "entity_id": entity_id,
-                    "domain": entity_id.split(".")[0],
+                    "entity_id": entity_data["entity_id"],
+                    "domain": entity_data["entity_id"].split(".")[0],
                     "name": entity_data.get("name", "Unknown"),
-                    "last_seen": entity_data.get("last_seen", "Unknown"),
+                    "last_seen": entity_data.get("created_at", "Unknown"),
+                    "reason": entity_data.get("reason", "Unknown"),
+                    "platform": entity_data.get("platform", "Unknown"),
                 }
-                for entity_id, entity_data in self.coordinator.orphaned_entities.items()
+                for entity_data in self.coordinator.orphaned_entities
             ],
         }
 

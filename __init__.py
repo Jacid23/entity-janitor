@@ -43,7 +43,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         name="Entity Janitor",
         manufacturer="Custom Integration",
         model="Entity Management System",
-        sw_version="1.0.0",
+        sw_version="1.0.4",
         suggested_area="System",
     )
     
