@@ -7,6 +7,7 @@ from datetime import timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.event import async_track_time_interval
+from homeassistant.helpers import device_registry as dr
 from homeassistant.const import Platform
 
 from .const import DOMAIN, PLATFORMS
@@ -34,6 +35,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Initial data fetch
     await coordinator.async_config_entry_first_refresh()
     
+    # Register device with icon
+    device_registry = dr.async_get(hass)
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        identifiers={(DOMAIN, entry.entry_id)},
+        name="Entity Janitor",
+        manufacturer="Custom Integration",
+        model="Entity Management System",
+        sw_version="1.0.0",
+        suggested_area="System",
+    )
+    
     # Setup platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     
@@ -43,7 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Setup periodic scanning if enabled
     if entry.options.get("auto_scan", False):
         async_track_time_interval(
-            hass, coordinator.async_scan_for_orphans, SCAN_INTERVAL
+            hass, coordinator.async_scan_for_obsolete, SCAN_INTERVAL
         )
     
     return True

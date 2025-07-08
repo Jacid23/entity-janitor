@@ -2,124 +2,187 @@
 
 ## Prerequisites
 
-- Home Assistant 2024.1.0 or later
-- HACS (Home Assistant Community Store) installed (for HACS installation)
+- Home Assistant 2023.3 or later
+- Access to your Home Assistant configuration directory
+- Basic understanding of Home Assistant integrations
 
 ## Installation Methods
 
-### Method 1: HACS (Recommended)
+### Method 1: Manual Installation (Recommended)
 
-1. **Open HACS** in your Home Assistant instance
-2. **Navigate to Integrations**
-3. **Click the three dots** (⋮) in the top right corner
-4. **Select "Custom repositories"**
-5. **Add the repository**:
-   - **URL**: `https://github.com/Jacid23/entity-janitor`
-   - **Category**: Integration
-   - **Click "Add"**
-6. **Find Entity Janitor** in the integrations list
-7. **Click "Download"**
-8. **Restart Home Assistant**
+1. **Download the Integration**
+   - Copy the entire `entity_janitor` folder to your `custom_components` directory
+   - Path should be: `<config>/custom_components/entity_janitor/`
 
-### Method 2: Manual Installation
-
-1. **Download the latest release** from [GitHub releases](https://github.com/Jacid23/entity-janitor/releases)
-2. **Extract the files** to your Home Assistant `custom_components` directory
-3. **Ensure proper structure**:
+2. **Restart Home Assistant**
+   ```bash
+   # If using Docker
+   docker restart homeassistant
+   
+   # If using systemd
+   sudo systemctl restart home-assistant@homeassistant
    ```
-   custom_components/
-   └── entity_janitor/
-       ├── __init__.py
-       ├── manifest.json
-       ├── config_flow.py
-       └── ... (other files)
-   ```
-4. **Restart Home Assistant**
 
-## Configuration
+3. **Add the Integration**
+   - Go to Settings → Devices & Services
+   - Click "Add Integration"
+   - Search for "Entity Janitor"
+   - Follow the configuration wizard
 
-### Initial Setup
+### Method 2: HACS (Future)
 
-1. **Go to Settings** → **Devices & Services**
-2. **Click "Add Integration"**
-3. **Search for "Entity Janitor"**
-4. **Click to add the integration**
-5. **Configure your preferences**:
-   - **Auto Scan**: Enable automatic periodic scanning
-   - **Scan Interval**: How often to scan (15-1440 minutes)
-   - **Auto Clean**: Enable automatic cleanup (requires backup)
-   - **Backup Before Clean**: Create backup files before removal
-   - **Minimum Age**: Only consider entities older than X days
-   - **Dry Run**: Preview changes without applying them
+This integration is designed to be HACS-compatible but would need to be submitted to the HACS store.
+
+## Initial Configuration
+
+### Basic Setup
+
+1. **Enable Integration**
+   - Auto Scan: Start with `false` to control scanning manually
+   - Scan Interval: 60 minutes (reasonable default)
+   - Auto Clean: Keep `false` until you're comfortable
+   - Backup Before Clean: Always keep `true`
+   - Minimum Age: 7 days (protects new entities)
+   - Dry Run: Keep `true` for testing
+
+2. **First Scan**
+   - Use the "Scan Orphans" button to do your first scan
+   - Review the results in the sensor attributes
+   - Check the logs for any issues
 
 ### Advanced Configuration
 
-#### Excluded Domains
-Skip entire entity domains (e.g., `automation`, `script`, `scene`):
+Access through Settings → Devices & Services → Entity Janitor → Configure
+
+- **Excluded Domains**: Add domains you never want cleaned
+- **Excluded Entities**: Protect specific entities by ID
+- **Scan Interval**: Adjust based on your system size
+- **Age Filtering**: Increase for more conservative cleanup
+
+## Testing and Validation
+
+### Step 1: First Scan
+```yaml
+# Call via Developer Tools → Services
+service: entity_janitor.scan_orphans
 ```
-automation, script, scene, zone, person
+
+### Step 2: Review Results
+- Check `sensor.entity_janitor_orphan_count`
+- Look at sensor attributes for entity list
+- Review logs for any errors
+
+### Step 3: Dry Run Cleanup
+```yaml
+service: entity_janitor.clean_orphans
+data:
+  dry_run: true
+  backup_before_clean: true
 ```
 
-#### Excluded Entities
-Protect specific entities from cleanup:
+### Step 4: Backup First
+```yaml
+service: entity_janitor.backup_entities
 ```
-sensor.important_data, switch.critical_device
+
+### Step 5: Real Cleanup (When Ready)
+```yaml
+service: entity_janitor.clean_orphans
+data:
+  dry_run: false
+  backup_before_clean: true
 ```
 
-## Verification
+## Monitoring and Maintenance
 
-After installation, verify the integration is working:
+### Dashboard Setup
+Add the provided Lovelace cards to monitor:
+- Orphan count trends
+- Last scan times
+- Total entity counts
 
-1. **Check Entities**: Look for Entity Janitor sensors in your entity list
-2. **View Logs**: Check for any errors in the Home Assistant logs
-3. **Test Scan**: Use the scan button to perform a manual scan
-4. **Verify Backup**: Ensure backup files are created when enabled
+### Automation Setup
+Use the example automations for:
+- Weekly scanning
+- Orphan alerts
+- Automatic backups
 
-## Troubleshooting
-
-### Integration Not Appearing
-
-1. **Check file structure** in `custom_components/entity_janitor/`
-2. **Verify manifest.json** is present and valid
-3. **Check Home Assistant logs** for loading errors
-4. **Restart Home Assistant** completely
-
-### Scan Not Finding Entities
-
-1. **Verify minimum age** setting (entities may be too new)
-2. **Check excluded domains** configuration
-3. **Review entity registry** for actual orphaned entities
-4. **Enable debug logging** for detailed information
-
-### Backup Issues
-
-1. **Check Home Assistant permissions** for writing files
-2. **Verify storage space** availability
-3. **Review backup file location** in configuration directory
-4. **Check backup file format** (should be valid JSON)
-
-## Debug Logging
-
-Enable detailed logging by adding to your `configuration.yaml`:
-
+### Log Monitoring
+Enable debug logging to track operations:
 ```yaml
 logger:
   logs:
     custom_components.entity_janitor: debug
 ```
 
-## Support
+## Safety Best Practices
 
-For issues and questions:
-- **GitHub Issues**: [Report bugs and request features](https://github.com/Jacid23/entity-janitor/issues)
-- **Home Assistant Community**: [General discussion and help](https://community.home-assistant.io)
-- **Documentation**: [README and guides](https://github.com/Jacid23/entity-janitor)
+1. **Always Backup First**
+   - Create backups before any cleanup
+   - Test restore procedures
+   - Keep multiple backup generations
 
-## Uninstallation
+2. **Start Conservative**
+   - Use high minimum age (14+ days)
+   - Exclude critical domains
+   - Test with small batches
 
-To remove Entity Janitor:
+3. **Monitor Results**
+   - Check entity counts before/after
+   - Verify functionality isn't affected
+   - Review logs for errors
 
-1. **Remove the integration** from Settings → Devices & Services
-2. **Delete the folder** `custom_components/entity_janitor/`
-3. **Restart Home Assistant**
-4. **Clean up** any remaining backup files (optional)
+4. **Gradual Automation**
+   - Start with manual operations
+   - Enable auto-scan after validation
+   - Only enable auto-clean after extensive testing
+
+## Troubleshooting
+
+### Common Issues
+
+**Integration Won't Load**
+- Check file permissions
+- Verify directory structure
+- Review Home Assistant logs
+
+**Scan Failures**
+- Check available memory
+- Verify entity registry isn't corrupted
+- Try smaller batches
+
+**Cleanup Issues**
+- Ensure backup location is writable
+- Check for locked entity files
+- Verify entity registry permissions
+
+### Recovery Procedures
+
+**Restore from Backup**
+Currently manual restoration is required:
+1. Locate backup file in config directory
+2. Review backup contents
+3. Manually re-add critical entities if needed
+
+**Reset Integration**
+1. Remove integration from UI
+2. Restart Home Assistant
+3. Re-add with fresh configuration
+
+## Performance Considerations
+
+### Large Installations
+- Expect longer scan times with 10,000+ entities
+- Consider increasing scan intervals
+- Monitor memory usage during scans
+
+### Storage Impact
+- Backup files can be large with many entities
+- Implement backup rotation
+- Monitor disk space usage
+
+## Support and Documentation
+
+- Check logs first: `<config>/home-assistant.log`
+- Review entity registry: `<config>/.storage/core.entity_registry`
+- Backup files: `<config>/entity_janitor_backup_*.json`

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="45" fill="#41BDF5" stroke="#1976D2" stroke-width="2"/>
+  
+  <!-- Broom handle -->
+  <rect x="35" y="20" width="4" height="40" fill="#8D6E63" rx="2"/>
+  
+  <!-- Broom bristles -->
+  <path d="M32 60 L42 60 L40 75 L34 75 Z" fill="#FFB74D"/>
+  <path d="M30 58 L44 58 L42 73 L32 73 Z" fill="#FF9800"/>
+  
+  <!-- Cleaning sparkles -->
+  <circle cx="60" cy="25" r="2" fill="#FFE082"/>
+  <circle cx="70" cy="35" r="1.5" fill="#FFE082"/>
+  <circle cx="65" cy="45" r="1" fill="#FFE082"/>
+  <circle cx="75" cy="30" r="1" fill="#FFE082"/>
+  
+  <!-- Database/entity symbol -->
+  <rect x="55" y="50" width="20" height="12" fill="#4CAF50" rx="2"/>
+  <rect x="57" y="52" width="16" height="2" fill="#FFFFFF"/>
+  <rect x="57" y="55" width="16" height="2" fill="#FFFFFF"/>
+  <rect x="57" y="58" width="16" height="2" fill="#FFFFFF"/>
+  
+  <!-- Trash/cleanup icon -->
+  <rect x="20" y="65" width="8" height="10" fill="#F44336" rx="1"/>
+  <rect x="19" y="63" width="10" height="2" fill="#D32F2F"/>
+  <line x1="22" y1="67" x2="22" y2="72" stroke="#FFFFFF" stroke-width="1"/>
+  <line x1="25" y1="67" x2="25" y2="72" stroke="#FFFFFF" stroke-width="1"/>
+</svg>

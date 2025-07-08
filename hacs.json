@@ -1,7 +1,9 @@
 {
   "name": "Entity Janitor",
-  "hacs": "1.32.0",
-  "domains": ["entity_janitor"],
-  "iot_class": "Local Polling",
-  "homeassistant": "2024.1.0"
+  "description": "Automatically detect and manage orphaned entities in Home Assistant",
+  "homeassistant": "2023.3.0",
+  "render_readme": true,
+  "iot_class": "Local Push",
+  "content_in_root": false,
+  "filename": "entity_janitor.zip"
 }

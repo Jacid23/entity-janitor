@@ -7,11 +7,12 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.util import dt as dt_util
 
 from .const import (
     DOMAIN,
-    ATTR_ORPHAN_COUNT,
+    ATTR_OBSOLETE_COUNT,
     ATTR_TOTAL_ENTITIES,
     ATTR_LAST_SCAN,
 )
@@ -29,7 +30,7 @@ async def async_setup_entry(
     coordinator = hass.data[DOMAIN][config_entry.entry_id]
 
     sensors = [
-        EntityJanitorSensor(coordinator, "orphan_count"),
+        EntityJanitorSensor(coordinator, "obsolete_count"),
         EntityJanitorSensor(coordinator, "total_entities"),
         EntityJanitorSensor(coordinator, "last_scan"),
     ]
@@ -54,21 +55,24 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the state of the sensor."""
-        if self._sensor_type == "orphan_count":
+        if self._sensor_type == "obsolete_count":
             return self.coordinator.data.get("orphaned_entities", 0)
         elif self._sensor_type == "total_entities":
             return self.coordinator.data.get("total_entities", 0)
         elif self._sensor_type == "last_scan":
             last_scan = self.coordinator.data.get("last_scan")
             if last_scan:
-                return last_scan.isoformat()
+                # Return datetime object for timestamp device class
+                if isinstance(last_scan, str):
+                    return dt_util.parse_datetime(last_scan)
+                return last_scan
             return None
         return None
 
     @property
     def device_class(self) -> Optional[SensorDeviceClass]:
         """Return the device class."""
-        if self._sensor_type in ["orphan_count", "total_entities"]:
+        if self._sensor_type in ["obsolete_count", "total_entities"]:
             return None  # No specific device class for counts
         elif self._sensor_type == "last_scan":
             return SensorDeviceClass.TIMESTAMP
@@ -105,3 +109,16 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
         elif self._sensor_type == "last_scan":
             return "mdi:clock-outline"
         return "mdi:information"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information for the Entity Janitor device."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.coordinator.config_entry.entry_id)},
+            name="Entity Janitor",
+            manufacturer="Custom Integration",
+            model="Entity Management System",
+            sw_version="1.0.0",
+            configuration_url="/local/entity_janitor/icon.svg",
+            suggested_area="System",
+        )
