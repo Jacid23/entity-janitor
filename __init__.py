@@ -1,6 +1,6 @@
 """
 Entity Janitor - Home Assistant Custom Integration
-Automatically detects and manages orphaned entities in Home Assistant.
+Automatically detects and manages obsolete entities in Home Assistant.
 """
 import logging
 from datetime import timedelta

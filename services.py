@@ -72,12 +72,12 @@ async def async_setup_services(hass: HomeAssistant, coordinator: EntityJanitorCo
             if entity_ids:
                 # Backup specific entities
                 entities_to_backup = [
-                    entity for entity in coordinator.orphaned_entities
+                    entity for entity in coordinator.obsolete_entities
                     if entity["entity_id"] in entity_ids
                 ]
             else:
-                # Backup all orphaned entities
-                entities_to_backup = coordinator.orphaned_entities
+                # Backup all obsolete entities
+                entities_to_backup = coordinator.obsolete_entities
             
             if entities_to_backup:
                 backup_file = await coordinator.async_backup_entities(entities_to_backup)

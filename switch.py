@@ -105,7 +105,6 @@ class EntityJanitorSwitch(CoordinatorEntity, SwitchEntity):
             manufacturer="Custom Integration",
             model="Entity Management System",
             sw_version="1.0.4",
-            configuration_url="/local/entity_janitor/icon.svg",
             suggested_area="System",
         )
 
@@ -135,7 +134,6 @@ class EntityJanitorTemplateSwitch(CoordinatorEntity, SwitchEntity):
             manufacturer="Custom Integration",
             model="Entity Management System",
             sw_version="1.0.4",
-            configuration_url="/local/entity_janitor/icon.svg",
             suggested_area="System",
         )
 

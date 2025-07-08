@@ -36,7 +36,7 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
         )
         self.config_entry = config_entry
         self.hass = hass
-        self._orphaned_entities: List[Dict[str, Any]] = []
+        self._obsolete_entities: List[Dict[str, Any]] = []
         self._last_scan: Optional[datetime] = None
         self._scan_in_progress = False
 
@@ -48,11 +48,11 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
             device_registry = async_get_device_registry(self.hass)
 
             total_entities = len(entity_registry.entities)
-            orphaned_count = len(self._orphaned_entities)
+            obsolete_count = len(self._obsolete_entities)
 
             return {
                 "total_entities": total_entities,
-                "orphaned_entities": orphaned_count,
+                "obsolete_entities": obsolete_count,
                 "last_scan": self._last_scan,
                 "scan_in_progress": self._scan_in_progress,
             }
@@ -63,9 +63,9 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
         """Scan for obsolete entities."""
         if self._scan_in_progress:
             _LOGGER.warning("Scan already in progress, skipping")
-            return self._orphaned_entities
+            return self._obsolete_entities
 
-        _LOGGER.info("Starting orphaned entity scan")
+        _LOGGER.info("Starting obsolete entity scan")
         self._scan_in_progress = True
         
         try:
@@ -84,7 +84,7 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
             )
 
             cutoff_date = dt_util.utcnow() - timedelta(days=minimum_age_days)
-            orphaned_entities = []
+            obsolete_entities = []
 
             for entity_id, entity in entity_registry.entities.items():
                 # Skip if entity is in excluded domains
@@ -96,24 +96,24 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
                 if entity_id in excluded_entities:
                     continue
 
-                # Check if entity is orphaned
-                is_orphaned = False
+                # Check if entity is obsolete
+                is_obsolete = False
                 reason = ""
 
-                # Check if device exists but is orphaned
+                # Check if device exists but is obsolete
                 if entity.device_id:
                     device = device_registry.devices.get(entity.device_id)
                     if not device:
-                        is_orphaned = True
+                        is_obsolete = True
                         reason = "Device not found"
                     elif not device.config_entries:
-                        is_orphaned = True
+                        is_obsolete = True
                         reason = "Device has no config entries"
                     elif not any(
                         entry_id in self.hass.config_entries.async_entries()
                         for entry_id in device.config_entries
                     ):
-                        is_orphaned = True
+                        is_obsolete = True
                         reason = "Device config entries not loaded"
 
                 # Check if config entry exists
@@ -122,26 +122,26 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
                         entity.config_entry_id
                     )
                     if not config_entry:
-                        is_orphaned = True
+                        is_obsolete = True
                         reason = "Config entry not found"
                     elif config_entry.state.name != "loaded":
-                        is_orphaned = True
+                        is_obsolete = True
                         reason = f"Config entry state: {config_entry.state.name}"
 
                 # Check if entity is old enough
-                if is_orphaned and entity.created_at:
+                if is_obsolete and entity.created_at:
                     if entity.created_at > cutoff_date:
                         continue  # Too new, skip
 
                 # Check if entity actually exists in Home Assistant
-                if is_orphaned:
+                if is_obsolete:
                     state = self.hass.states.get(entity_id)
                     if state is not None:
-                        # Entity has state, might not be orphaned
+                        # Entity has state, might not be obsolete
                         continue
 
-                if is_orphaned:
-                    orphaned_entities.append({
+                if is_obsolete:
+                    obsolete_entities.append({
                         "entity_id": entity_id,
                         "domain": domain,
                         "platform": entity.platform,
@@ -153,24 +153,24 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
                         "unique_id": entity.unique_id,
                     })
 
-            self._orphaned_entities = orphaned_entities
+            self._obsolete_entities = obsolete_entities
             self._last_scan = dt_util.utcnow()
             
-            _LOGGER.info(f"Scan completed. Found {len(orphaned_entities)} orphaned entities")
+            _LOGGER.info(f"Scan completed. Found {len(obsolete_entities)} obsolete entities")
             
             # Fire event
             self.hass.bus.fire(
-                "entity_janitor_orphans_found",
+                "entity_janitor_obsolete_found",
                 {
-                    "orphan_count": len(orphaned_entities),
+                    "obsolete_count": len(obsolete_entities),
                     "total_entities": len(entity_registry.entities),
                 }
             )
 
-            return orphaned_entities
+            return obsolete_entities
 
         except Exception as ex:
-            _LOGGER.error(f"Error during orphan scan: {ex}")
+            _LOGGER.error(f"Error during obsolete scan: {ex}")
             raise
         finally:
             self._scan_in_progress = False
@@ -185,14 +185,14 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
         """Clean obsolete entities."""
         _LOGGER.info(f"Starting obsolete cleanup (dry_run={dry_run})")
         
-        # If no specific entities provided, use all orphaned entities
+        # If no specific entities provided, use all obsolete entities
         if entity_ids is None:
-            if not self._orphaned_entities:
+            if not self._obsolete_entities:
                 await self.async_scan_for_obsolete()
-            entities_to_clean = self._orphaned_entities
+            entities_to_clean = self._obsolete_entities
         else:
             entities_to_clean = [
-                entity for entity in self._orphaned_entities
+                entity for entity in self._obsolete_entities
                 if entity["entity_id"] in entity_ids
             ]
 
@@ -215,7 +215,7 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
                     if entity_id in entity_registry.entities:
                         entity_registry.async_remove(entity_id)
                         cleaned_count += 1
-                        _LOGGER.info(f"Removed orphaned entity: {entity_id}")
+                        _LOGGER.info(f"Removed obsolete entity: {entity_id}")
                     else:
                         skipped_count += 1
                         _LOGGER.warning(f"Entity not found in registry: {entity_id}")
@@ -225,10 +225,10 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
 
             # Update our internal list
             remaining_entities = [
-                entity for entity in self._orphaned_entities
+                entity for entity in self._obsolete_entities
                 if entity["entity_id"] not in [e["entity_id"] for e in entities_to_clean]
             ]
-            self._orphaned_entities = remaining_entities
+            self._obsolete_entities = remaining_entities
 
             # Fire event
             self.hass.bus.fire(
@@ -276,9 +276,9 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
             raise
 
     @property
-    def orphaned_entities(self) -> List[Dict[str, Any]]:
-        """Return list of orphaned entities."""
-        return self._orphaned_entities
+    def obsolete_entities(self) -> List[Dict[str, Any]]:
+        """Return list of obsolete entities."""
+        return self._obsolete_entities
 
     @property
     def last_scan(self) -> Optional[datetime]:

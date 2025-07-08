@@ -56,7 +56,7 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
     def native_value(self) -> Any:
         """Return the state of the sensor."""
         if self._sensor_type == "obsolete_count":
-            return len(self.coordinator.orphaned_entities)
+            return self.coordinator.data.get("obsolete_entities", 0)
         elif self._sensor_type == "total_entities":
             return self.coordinator.data.get("total_entities", 0)
         elif self._sensor_type == "last_scan":
@@ -83,16 +83,16 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
         """Return extra state attributes."""
         if self._sensor_type == "obsolete_count":
             return {
-                "orphaned_entities": [
-                    entity["entity_id"] for entity in self.coordinator.orphaned_entities
+                "obsolete_entities": [
+                    entity["entity_id"] for entity in self.coordinator.obsolete_entities
                 ][:50],  # Limit to first 50 to avoid state size limits
                 "scan_in_progress": self.coordinator.data.get("scan_in_progress", False),
             }
         elif self._sensor_type == "total_entities":
             return {
-                "orphan_percentage": (
+                "obsolete_percentage": (
                     round(
-                        (len(self.coordinator.orphaned_entities) / 
+                        (len(self.coordinator.obsolete_entities) / 
                          max(self.coordinator.data.get("total_entities", 1), 1)) * 100, 2
                     )
                 )
@@ -119,6 +119,5 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
             manufacturer="Custom Integration",
             model="Entity Management System",
             sw_version="1.0.4",
-            configuration_url="/local/entity_janitor/icon.svg",
             suggested_area="System",
         )
