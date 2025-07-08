@@ -59,8 +59,8 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
         except Exception as ex:
             raise UpdateFailed(f"Error communicating with API: {ex}") from ex
 
-    async def async_scan_for_orphans(self, *args) -> List[Dict[str, Any]]:
-        """Scan for orphaned entities."""
+    async def async_scan_for_obsolete(self, *args) -> List[Dict[str, Any]]:
+        """Scan for obsolete entities."""
         if self._scan_in_progress:
             _LOGGER.warning("Scan already in progress, skipping")
             return self._orphaned_entities
@@ -176,19 +176,19 @@ class EntityJanitorCoordinator(DataUpdateCoordinator):
             self._scan_in_progress = False
             await self.async_update_listeners()
 
-    async def async_clean_orphans(
+    async def async_clean_obsolete(
         self, 
         entity_ids: Optional[List[str]] = None,
         dry_run: bool = True,
         backup_before_clean: bool = True
     ) -> Dict[str, Any]:
-        """Clean orphaned entities."""
-        _LOGGER.info(f"Starting orphan cleanup (dry_run={dry_run})")
+        """Clean obsolete entities."""
+        _LOGGER.info(f"Starting obsolete cleanup (dry_run={dry_run})")
         
         # If no specific entities provided, use all orphaned entities
         if entity_ids is None:
             if not self._orphaned_entities:
-                await self.async_scan_for_orphans()
+                await self.async_scan_for_obsolete()
             entities_to_clean = self._orphaned_entities
         else:
             entities_to_clean = [
