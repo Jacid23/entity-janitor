@@ -27,13 +27,21 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Entity Janitor from a config entry."""
+    _LOGGER.info("Setting up Entity Janitor integration")
+    
     coordinator = EntityJanitorCoordinator(hass, entry)
     
     # Store coordinator
     hass.data[DOMAIN][entry.entry_id] = coordinator
+    _LOGGER.info("Coordinator stored in hass.data")
     
     # Initial data fetch
-    await coordinator.async_config_entry_first_refresh()
+    try:
+        await coordinator.async_config_entry_first_refresh()
+        _LOGGER.info("Coordinator first refresh completed")
+    except Exception as ex:
+        _LOGGER.error(f"Failed to initialize coordinator: {ex}")
+        return False
     
     # Register device with icon
     device_registry = dr.async_get(hass)
@@ -46,19 +54,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         sw_version="1.0.4",
         suggested_area="System",
     )
+    _LOGGER.info("Device registered")
     
     # Setup platforms
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    try:
+        await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+        _LOGGER.info("Platforms setup completed")
+    except Exception as ex:
+        _LOGGER.error(f"Failed to setup platforms: {ex}")
+        return False
     
     # Setup services
-    await async_setup_services(hass, coordinator)
+    try:
+        await async_setup_services(hass, coordinator)
+        _LOGGER.info("Services setup completed")
+    except Exception as ex:
+        _LOGGER.error(f"Failed to setup services: {ex}")
+        return False
     
     # Setup periodic scanning if enabled
     if entry.options.get("auto_scan", False):
         async_track_time_interval(
             hass, coordinator.async_scan_for_obsolete, SCAN_INTERVAL
         )
+        _LOGGER.info("Periodic scanning enabled")
     
+    _LOGGER.info("Entity Janitor integration setup completed successfully")
     return True
 
 

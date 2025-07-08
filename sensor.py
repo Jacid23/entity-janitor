@@ -56,7 +56,7 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
     def native_value(self) -> Any:
         """Return the state of the sensor."""
         if self._sensor_type == "obsolete_count":
-            return self.coordinator.data.get("orphaned_entities", 0)
+            return len(self.coordinator.orphaned_entities)
         elif self._sensor_type == "total_entities":
             return self.coordinator.data.get("total_entities", 0)
         elif self._sensor_type == "last_scan":
@@ -81,7 +81,7 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return extra state attributes."""
-        if self._sensor_type == "orphan_count":
+        if self._sensor_type == "obsolete_count":
             return {
                 "orphaned_entities": [
                     entity["entity_id"] for entity in self.coordinator.orphaned_entities
@@ -92,7 +92,7 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
             return {
                 "orphan_percentage": (
                     round(
-                        (self.coordinator.data.get("orphaned_entities", 0) / 
+                        (len(self.coordinator.orphaned_entities) / 
                          max(self.coordinator.data.get("total_entities", 1), 1)) * 100, 2
                     )
                 )
@@ -102,7 +102,7 @@ class EntityJanitorSensor(CoordinatorEntity, SensorEntity):
     @property
     def icon(self) -> str:
         """Return the icon for the sensor."""
-        if self._sensor_type == "orphan_count":
+        if self._sensor_type == "obsolete_count":
             return "mdi:delete-sweep"
         elif self._sensor_type == "total_entities":
             return "mdi:counter"
